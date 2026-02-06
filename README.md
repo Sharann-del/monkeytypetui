@@ -1,14 +1,26 @@
-# monkeytypetui
+# 🐒 monkeytypetui
 
-A Monkeytype-inspired typing test for the Unix terminal.
+> A Monkeytype-inspired typing test built for the Unix terminal.
 
-Fast. Minimal. Real-time. No browser required.
+`monkeytypetui` is a fast, minimal, real-time typing test that runs entirely inside your terminal — no browser required.
 
----
+Built with Node.js. Distributed via npm and Homebrew.
 
-## Installation
+## ✨ Features
 
-### Homebrew (macOS)
+- ⚡ Real-time keystroke capture (no Enter required)
+- 🎯 Live WPM calculation
+- 📊 Live accuracy tracking
+- ⏱ Configurable test duration
+- 🎨 Colored feedback (correct / incorrect characters)
+- 🧠 Monkeytype-inspired minimal interface
+- 💻 Runs entirely inside the terminal
+- 🍺 Installable via Homebrew
+- 📦 Installable via npm
+
+## 📦 Installation
+
+### 🍺 macOS (Homebrew)
 
 ```bash
 brew tap sharann-del/monkeytypetui
@@ -21,9 +33,7 @@ Run:
 monkeytypetui
 ```
 
----
-
-### npm (macOS / Linux)
+### 📦 npm (macOS / Linux)
 
 ```bash
 npm install -g monkeytypetui
@@ -35,9 +45,7 @@ Run:
 monkeytypetui
 ```
 
----
-
-## Usage
+## 🚀 Usage
 
 Basic:
 
@@ -52,7 +60,7 @@ monkeytypetui --time 30
 monkeytypetui --words 50
 ```
 
-### Options
+## ⚙️ Options
 
 | Option | Description |
 |--------|------------|
@@ -63,20 +71,48 @@ Defaults:
 - 60 seconds
 - 30 words
 
----
+## 🏗 Project Structure
 
-## Features
+```
+monkeytypetui/
+│
+├── index.js
+├── package.json
+├── wordlist.txt
+└── engine/
+    ├── input.js
+    ├── renderer.js
+    ├── stats.js
+    └── typing.js
+```
 
-- Real-time keystroke capture
-- Live WPM calculation
-- Live accuracy tracking
-- ANSI colored feedback
-- Minimal terminal UI
-- Installable via npm and Homebrew
+- `input.js` → Raw key capture
+- `renderer.js` → ANSI rendering engine
+- `stats.js` → WPM & accuracy logic
+- `typing.js` → Word & typing state management
 
----
+## 🛠 Requirements
 
-## Development
+- Node.js ≥ 14
+- macOS or Linux
+- Terminal with ANSI color support
+
+## 🔄 Updating
+
+If installed via Homebrew:
+
+```bash
+brew update
+brew upgrade monkeytypetui
+```
+
+If installed via npm:
+
+```bash
+npm update -g monkeytypetui
+```
+
+## 🧪 Development
 
 Clone the repository:
 
@@ -90,9 +126,3 @@ Run locally:
 ```bash
 node index.js
 ```
-
----
-
-## License
-
-MIT
