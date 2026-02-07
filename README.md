@@ -39,17 +39,6 @@ Basic:
 monkeytypetui
 ```
 
-With arguments:
-
-```bash
-monkeytypetui --time 30
-monkeytypetui --words 50
-```
-
-Defaults:
-- 60 seconds
-- 30 words
-
 ## Update
 
 If installed via Homebrew:
