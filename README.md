@@ -31,21 +31,6 @@ Run:
 monkeytypetui
 ```
 
-## Update
-
-If installed via Homebrew:
-
-```bash
-brew update
-brew upgrade monkeytypetui
-```
-
-If installed via npm:
-
-```bash
-npm update -g monkeytypetui
-```
-
 ## Usage
 
 Basic:
@@ -64,6 +49,36 @@ monkeytypetui --words 50
 Defaults:
 - 60 seconds
 - 30 words
+
+## Update
+
+If installed via Homebrew:
+
+```bash
+brew update
+brew upgrade monkeytypetui
+```
+
+If installed via npm:
+
+```bash
+npm update -g monkeytypetui
+```
+
+## Uninstall
+
+### Homebrew
+
+```bash
+brew uninstall monkeytypetui
+brew untap sharann-del/monkeytypetui
+```
+
+### npm
+
+```bash
+npm uninstall -g monkeytypetui
+```
 
 ## Features
 
