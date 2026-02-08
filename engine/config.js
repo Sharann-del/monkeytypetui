@@ -177,10 +177,6 @@ function mapFromPersistent(store) {
       appearance.tapeMargin = DEFAULT_APPEARANCE.tapeMargin;
       migrated = true;
     }
-    if (caret.caretStyle !== 'underline' && caret.caretStyle !== 'off') {
-      caret.caretStyle = DEFAULT_CARET.caretStyle;
-      migrated = true;
-    }
     if (caret.paceCaretStyle === '|') {
       caret.paceCaretStyle = 'off';
       migrated = true;
@@ -256,7 +252,6 @@ function load() {
     if (process.env.TERMINALTYPE_SIMULATE_PUBLISHED !== '1') {
       if (cached.behavior.quickRestart === 'enter') cached.behavior.quickRestart = DEFAULT_BEHAVIOR.quickRestart;
       if (cached.appearance.tapeMargin === 100) cached.appearance.tapeMargin = DEFAULT_APPEARANCE.tapeMargin;
-      if (cached.caret.caretStyle !== 'underline' && cached.caret.caretStyle !== 'off') cached.caret.caretStyle = DEFAULT_CARET.caretStyle;
     }
     if (cached.theme.custom) {
       cached.theme.custom = { ...THEME_PRESETS.default, ...cached.theme.custom };
