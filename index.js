@@ -131,7 +131,7 @@ async function run() {
       const pb = configManager && configManager.get('personalBests');
       if (pb && typeof pb.wpm === 'number') pbWpm = pb.wpm;
     } catch (_) {}
-    const resultOptions = { stats, themeConfig: getEffectiveTheme(), testMode, timeLimitSeconds, wordLimit, pbWpm };
+    const resultOptions = { statsSnapshot: s, themeConfig: getEffectiveTheme(), testMode, timeLimitSeconds, wordLimit, pbWpm };
     screen = SCREENS.RESULTS;
     renderResultsScreen(resultOptions);
   }
