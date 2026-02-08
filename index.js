@@ -26,7 +26,6 @@ const {
   MAIN_MENU_OPTIONS,
   SETTINGS_CATEGORIES,
   BEHAVIOR_OPTIONS,
-  CARET_OPTIONS,
   APPEARANCE_OPTIONS,
   KEYMAP_OPTIONS,
   THEME_PRESET_NAMES,
@@ -233,7 +232,7 @@ async function run() {
     if (useTape) {
       const cols = process.stdout.columns || 80;
       const fullWidth = Math.max(20, cols - 2 - 4);
-      const tapeWidthPct = Math.max(50, Math.min(100, keymapConfig.tapeMargin ?? 100)) / 100;
+      const tapeWidthPct = Math.max(50, Math.min(100, keymapConfig.tapeMargin ?? 75)) / 100;
       const viewportWidth = Math.max(20, Math.floor(fullWidth * tapeWidthPct));
       const caretIndex = typingState.getLogicalCaretCharIndex ? typingState.getLogicalCaretCharIndex() : 0;
       const tapeLength = typingState.getTapeLength();
@@ -446,9 +445,8 @@ async function run() {
       const navDown = event.type === 'arrowDown' || (event.type === 'char' && event.char === 'j');
       const isBehaviorCategory = settingsCategoryIndex === 0;
       const isAppearanceCategory = settingsCategoryIndex === 1;
-      const isCaretCategory = settingsCategoryIndex === 2;
-      const isKeymapCategory = settingsCategoryIndex === 3;
-      const isThemeCategory = settingsCategoryIndex === 4;
+      const isKeymapCategory = settingsCategoryIndex === 2;
+      const isThemeCategory = settingsCategoryIndex === 3;
       if (event.type === 'arrowLeft' && settingsPanelFocus === 'right' && isBehaviorCategory && BEHAVIOR_OPTIONS[settingsRightOptionIndex]) {
         const opt = BEHAVIOR_OPTIONS[settingsRightOptionIndex];
         const behavior = getBehavior();
@@ -467,42 +465,6 @@ async function run() {
         setBehavior(opt.key, opt.values[valueIdx]);
         saveConfig();
         renderSettings();
-        return;
-      }
-      if (event.type === 'arrowLeft' && settingsPanelFocus === 'right' && isCaretCategory && CARET_OPTIONS[settingsRightOptionIndex]) {
-        const opt = CARET_OPTIONS[settingsRightOptionIndex];
-        const caret = getCaret();
-        if (opt.type === 'slider') {
-          const value = caret[opt.key] ?? opt.min;
-          const newValue = Math.max(opt.min, value - (opt.step || 5));
-          setCaret(opt.key, newValue);
-          saveConfig();
-          renderSettings();
-        } else {
-          const idx = opt.values.indexOf(caret[opt.key]);
-          const valueIdx = idx >= 0 ? (idx - 1 + opt.values.length) % opt.values.length : 0;
-          setCaret(opt.key, opt.values[valueIdx]);
-          saveConfig();
-          renderSettings();
-        }
-        return;
-      }
-      if (event.type === 'arrowRight' && settingsPanelFocus === 'right' && isCaretCategory && CARET_OPTIONS[settingsRightOptionIndex]) {
-        const opt = CARET_OPTIONS[settingsRightOptionIndex];
-        const caret = getCaret();
-        if (opt.type === 'slider') {
-          const value = caret[opt.key] ?? opt.min;
-          const newValue = Math.min(opt.max, value + (opt.step || 5));
-          setCaret(opt.key, newValue);
-          saveConfig();
-          renderSettings();
-        } else {
-          const idx = opt.values.indexOf(caret[opt.key]);
-          const valueIdx = idx >= 0 ? (idx + 1) % opt.values.length : 0;
-          setCaret(opt.key, opt.values[valueIdx]);
-          saveConfig();
-          renderSettings();
-        }
         return;
       }
       if (event.type === 'arrowLeft' && settingsPanelFocus === 'right' && isAppearanceCategory && APPEARANCE_OPTIONS[settingsRightOptionIndex]) {
@@ -658,24 +620,6 @@ async function run() {
             setBehavior(opt.key, opt.values[valueIdx]);
             saveConfig();
             renderSettings();
-          }
-        } else if (isCaretCategory) {
-          const opt = CARET_OPTIONS[settingsRightOptionIndex];
-          if (opt) {
-            const caret = getCaret();
-            if (opt.type === 'slider') {
-              const value = caret[opt.key] ?? opt.min;
-              const newValue = Math.min(opt.max, value + (opt.step || 5));
-              setCaret(opt.key, newValue);
-              saveConfig();
-              renderSettings();
-            } else {
-              const idx = opt.values.indexOf(caret[opt.key]);
-              const valueIdx = idx >= 0 ? (idx + 1) % opt.values.length : 0;
-              setCaret(opt.key, opt.values[valueIdx]);
-              saveConfig();
-              renderSettings();
-            }
           }
         } else if (isAppearanceCategory) {
           const opt = APPEARANCE_OPTIONS[settingsRightOptionIndex];

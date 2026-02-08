@@ -346,12 +346,13 @@ function createLineBasedTypingStateFromWords(getNextWords, maxLineLen, wordLimit
           }
           if (wordIdx < line.length - 1) {
             if (idx === flatCharIndex) {
-              const spaceStatus =
-                currentRowIndex === lineIdx && wordIndex === wordIdx && charIndex === word.length
-                  ? 'caret'
-                  : currentRowIndex > lineIdx || (currentRowIndex === lineIdx && wordIndex > wordIdx)
-                    ? 'correct'
-                    : 'untyped';
+              const caretOnSpace =
+                currentRowIndex === lineIdx && wordIndex === wordIdx && charIndex === word.length;
+              const spaceStatus = caretOnSpace
+                ? 'caret'
+                : currentRowIndex > lineIdx || (currentRowIndex === lineIdx && wordIndex > wordIdx)
+                  ? 'correct'
+                  : 'untyped';
               return { char: ' ', status: spaceStatus };
             }
             idx++;

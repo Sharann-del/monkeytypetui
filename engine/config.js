@@ -44,7 +44,7 @@ const DEFAULT_APPEARANCE = {
   liveAccuracy: 'text',
   liveBurst: 'off',
   tapeMode: 'off',
-  tapeMargin: 100,
+  tapeMargin: 75,
 };
 
 const DEFAULT_KEYMAP = {

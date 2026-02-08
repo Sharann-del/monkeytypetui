@@ -114,7 +114,7 @@ function showCursor() {
   process.stdout.write('\x1b[?25h');
 }
 
-function renderWordWithState(word, typingState, lineIdx, wordIndex, theme, blindMode = false, caretOptions = null) {
+function renderWordWithState(word, typingState, lineIdx, wordIndex, theme, blindMode = false, caretOptions = null, hasNextWord = true) {
   const { correct, incorrect, dim, caret, reset } = theme;
   let out = '';
   const isCurrent = typingState.isCurrentWord(lineIdx, wordIndex);
@@ -175,7 +175,9 @@ function renderWordWithState(word, typingState, lineIdx, wordIndex, theme, blind
     } else {
       out += style + ' ' + reset;
     }
-  } else if (isCurrent && typingState.getCharStatus(lineIdx, wordIndex, word.length) === 'caret') {
+  } else if (hasNextWord && isCurrent && typingState.getCharStatus(lineIdx, wordIndex, word.length) === 'caret') {
+    // Caret on space: space is rendered in renderWordWithTrailingSpace
+  } else if (!hasNextWord && isCurrent && typingState.getCharStatus(lineIdx, wordIndex, word.length) === 'caret') {
     const style = (caretOptions && caretOptions.mainCaretStyle) || caret;
     const caretChar = (caretOptions && caretOptions.mainCaretChar) || null;
     if (caretChar === 'underline') {
@@ -189,10 +191,32 @@ function renderWordWithState(word, typingState, lineIdx, wordIndex, theme, blind
   return out;
 }
 
+function renderWordWithTrailingSpace(word, typingState, lineIdx, wordIndex, theme, blindMode, caretOptions, hasNextWord) {
+  let out = renderWordWithState(word, typingState, lineIdx, wordIndex, theme, blindMode, caretOptions, hasNextWord);
+  if (!hasNextWord) return out;
+  const { dim, caret, reset } = theme;
+  const caretOnSpace = typingState.getCharStatus(lineIdx, wordIndex, word.length) === 'caret';
+  if (caretOnSpace && caretOptions) {
+    const style = (caretOptions.mainCaretStyle) || caret;
+    const caretChar = caretOptions.mainCaretChar || null;
+    if (caretChar === 'underline') {
+      out += ANSI_UNDERLINE + style + ' ' + reset;
+    } else if (caretChar && caretChar !== ' ') {
+      out += style + caretChar + reset + dim + ' ' + reset;
+    } else {
+      out += style + ' ' + reset;
+    }
+  } else {
+    out += ' ';
+  }
+  return out;
+}
+
 function renderLine(lineWords, lineIdx, typingState, theme, blindMode = false, caretOptions = null) {
   return lineWords
-    .map((word, wordIndex) => renderWordWithState(word, typingState, lineIdx, wordIndex, theme, blindMode, caretOptions))
-    .join(' ');
+    .map((word, wordIndex) =>
+      renderWordWithTrailingSpace(word, typingState, lineIdx, wordIndex, theme, blindMode, caretOptions, wordIndex < lineWords.length - 1))
+    .join('');
 }
 
 function renderTapeLine(typingState, theme, blindMode, scrollOffset, viewportWidth, mainCaretCharIndex, paceCaretCharIndex, caretConfig) {
@@ -362,7 +386,7 @@ function renderTestScreen(options) {
   const tapeMode = keymapConfig.tapeMode || 'off';
   let keymapMode = keymapConfig.keymapMode || 'off';
   if (keymapMode === 'static' || keymapMode === 'next') keymapMode = 'react';
-  const tapeWidthPct = Math.max(50, Math.min(100, keymapConfig.tapeMargin ?? 100)) / 100;
+  const tapeWidthPct = Math.max(50, Math.min(100, keymapConfig.tapeMargin ?? 75)) / 100;
   const useTape = (tapeMode === 'letter' || tapeMode === 'word') && typeof typingState.getTapeLength === 'function' && typeof typingState.getTapeCharAt === 'function';
 
   let resolvedMainPosition = mainCaretPosition;
@@ -539,7 +563,6 @@ const WORD_OPTIONS = [10, 25, 50, 100];
 const SETTINGS_CATEGORIES = [
   { id: 'behavior', label: 'Behavior' },
   { id: 'appearance', label: 'Appearance' },
-  { id: 'caret', label: 'Caret' },
   { id: 'keymap', label: 'Keymap' },
   { id: 'theme', label: 'Theme' },
 ];
@@ -555,37 +578,6 @@ const BEHAVIOR_OPTIONS = [
 
 const CARET_STYLE_VALUES = ['off', '|', '█', '▯', '_', 'underline'];
 const ANSI_UNDERLINE = '\x1b[4m';
-
-const CARET_OPTIONS = [
-  {
-    key: 'caretStyle',
-    label: 'Caret Style',
-    values: CARET_STYLE_VALUES,
-    description: 'Character or style at the typing position. Underline = underline next char. Off = no visible caret.',
-  },
-  {
-    key: 'paceCaret',
-    label: 'Pace Caret',
-    values: ['off', 'avg', 'pb', 'last', 'daily', 'custom'],
-    description: 'Show a second caret at your target pace. Off = disabled.',
-  },
-  {
-    key: 'paceCaretStyle',
-    label: 'Pace Caret Style',
-    values: CARET_STYLE_VALUES,
-    description: 'Style of the pace caret (same options as main caret).',
-  },
-  {
-    key: 'paceCaretCustomWpm',
-    label: 'Pace Caret WPM',
-    type: 'slider',
-    min: 10,
-    max: 120,
-    step: 5,
-    unit: ' wpm',
-    description: 'Target WPM when Pace Caret is set to Custom. Used only when Pace Caret = custom.',
-  },
-];
 
 const APPEARANCE_OPTIONS = [
   {
@@ -648,7 +640,6 @@ const KEYMAP_OPTIONS = [
 const SETTINGS_OPTIONS_BY_CATEGORY = {
   behavior: BEHAVIOR_OPTIONS,
   appearance: APPEARANCE_OPTIONS,
-  caret: CARET_OPTIONS,
   keymap: KEYMAP_OPTIONS,
   theme: null,
 };
@@ -941,7 +932,7 @@ function renderResultsScreen(options) {
   const testTypeLabel = getTestTypeLabel(testMode, timeLimitSeconds, wordLimit);
 
   process.stdout.write('\x1b[?25l\x1b[2J\x1b[H');
-  const showDuration = testMode !== 'words' && testMode !== 'custom';
+  const showDuration = testMode !== 'time' && testMode !== 'words' && testMode !== 'custom';
   const bold = '\x1b[1m';
   const content = [
     theme.accent + 'test complete' + theme.reset,
@@ -1036,7 +1027,6 @@ function renderSettingsScreen(options) {
     : (SETTINGS_OPTIONS_BY_CATEGORY[category.id] || []);
   const rightIdx = Math.max(0, Math.min(rightOptionIndex, Math.max(0, optionsList.length - 1)));
   const isBehavior = category.id === 'behavior';
-  const isCaret = category.id === 'caret';
   const isAppearance = category.id === 'appearance';
   const isKeymap = category.id === 'keymap';
 
@@ -1087,56 +1077,6 @@ function renderSettingsScreen(options) {
         rightLines.push(theme.dim + BOX.v + theme.reset + ' ' + theme.dim + line + ' '.repeat(Math.max(0, rightInnerWidth - 1 - line.length)) + theme.dim + BOX.v + theme.reset);
       }
     }
-  } else if (isCaret && optionsList.length > 0) {
-    for (let i = 0; i < optionsList.length; i++) {
-      const opt = optionsList[i];
-      const selected = panelFocus === 'right' && i === rightIdx;
-      const prefix = selected ? theme.accent + '> ' + theme.reset : '  ';
-      if (opt.type === 'slider') {
-        const value = Math.min(opt.max, Math.max(opt.min, caretConfig[opt.key] ?? opt.min));
-        const barLen = 10;
-        const filled = Math.round(((value - opt.min) / (opt.max - opt.min || 1)) * barLen);
-        const bar = theme.accent + '█'.repeat(filled) + theme.reset + theme.dim + '░'.repeat(barLen - filled) + theme.reset;
-        const lineContent = truncateToVisible(prefix + opt.label + '   [' + bar + '] ' + value + (opt.unit || ''), rightInnerWidth);
-        const padded = lineContent + ' '.repeat(Math.max(0, rightInnerWidth - visibleLength(lineContent)));
-        rightLines.push(theme.dim + BOX.v + theme.reset + (selected ? theme.accent + padded + theme.reset : theme.text + padded + theme.reset) + theme.dim + BOX.v + theme.reset);
-      } else {
-        const currentValue = caretConfig[opt.key];
-        const valueIdx = opt.values.indexOf(currentValue);
-        const displayValue = valueIdx >= 0 ? currentValue : opt.values[0];
-        const valueParts = opt.values.map((v) => (v === displayValue ? theme.accent + v + theme.reset : theme.dim + v + theme.reset));
-        const valueStr = valueParts.join(theme.dim + ' · ' + theme.reset);
-        const lineContent = truncateToVisible(prefix + opt.label + '   ' + valueStr, rightInnerWidth);
-        const padded = lineContent + ' '.repeat(Math.max(0, rightInnerWidth - visibleLength(lineContent)));
-        rightLines.push(theme.dim + BOX.v + theme.reset + (selected ? theme.accent + padded + theme.reset : theme.text + padded + theme.reset) + theme.dim + BOX.v + theme.reset);
-      }
-    }
-    const selectedOpt = optionsList[rightIdx];
-    const desc = selectedOpt && selectedOpt.description ? selectedOpt.description : '';
-    if (desc) {
-      const descPlain = desc.replace(/\x1b\[[?0-9;]*[a-zA-Z]/g, '');
-      const descWrapped = wrapPlainText(descPlain, rightInnerWidth - 2);
-      for (const line of descWrapped) {
-        rightLines.push(theme.dim + BOX.v + theme.reset + ' ' + theme.dim + line + ' '.repeat(Math.max(0, rightInnerWidth - 1 - line.length)) + theme.dim + BOX.v + theme.reset);
-      }
-    }
-    rightLines.push(theme.dim + BOX.v + theme.reset + ' ' + ' '.repeat(rightInnerWidth - 1) + theme.dim + BOX.v + theme.reset);
-    const previewLabel = truncateToVisible(theme.dim + ' Preview ' + theme.reset, rightInnerWidth - 1);
-    rightLines.push(theme.dim + BOX.v + theme.reset + ' ' + previewLabel + ' '.repeat(Math.max(0, rightInnerWidth - 1 - visibleLength(previewLabel))) + theme.dim + BOX.v + theme.reset);
-    const caretChar = (caretConfig.caretStyle && caretConfig.caretStyle !== 'off') ? caretConfig.caretStyle : ' ';
-    const paceChar = (caretConfig.paceCaretStyle && caretConfig.paceCaretStyle !== 'off') ? caretConfig.paceCaretStyle : ' ';
-    const caretStyled = caretChar === 'underline'
-      ? ANSI_UNDERLINE + theme.caret + 'b' + theme.reset
-      : (caretChar !== ' ' ? theme.caret + caretChar + theme.reset : ' ');
-    const paceStyled = paceChar !== ' ' ? theme.dim + theme.caret + paceChar + theme.reset : ' ';
-    const previewLine1 = truncateToVisible(caretChar === 'underline'
-      ? '  The quick ' + caretStyled + 'rown fox'
-      : '  The quick ' + caretStyled + 'brown fox', rightInnerWidth - 1);
-    rightLines.push(theme.dim + BOX.v + theme.reset + ' ' + theme.text + previewLine1 + ' '.repeat(Math.max(0, rightInnerWidth - 1 - visibleLength(previewLine1))) + theme.dim + BOX.v + theme.reset);
-    const previewLine2 = truncateToVisible((caretConfig.paceCaret && caretConfig.paceCaret !== 'off')
-      ? '  Pace: hello ' + paceStyled + 'world'
-      : '  Pace: (off)', rightInnerWidth - 1);
-    rightLines.push(theme.dim + BOX.v + theme.reset + ' ' + theme.text + previewLine2 + ' '.repeat(Math.max(0, rightInnerWidth - 1 - visibleLength(previewLine2))) + theme.dim + BOX.v + theme.reset);
   } else if (isAppearance && optionsList.length > 0) {
     for (let i = 0; i < optionsList.length; i++) {
       const opt = optionsList[i];
@@ -1255,7 +1195,7 @@ function renderSettingsScreen(options) {
   }
   rightLines.push(rightBorderBottom);
 
-  const helpText = (isBehavior || isCaret || isAppearance || isKeymap || isTheme) && panelFocus === 'right'
+  const helpText = (isBehavior || isAppearance || isKeymap || isTheme) && panelFocus === 'right'
     ? theme.dim + '↑/↓ j/k  Navigate   ←/→  Change value   Tab  Switch panel   r  Reset defaults   Esc  Back' + theme.reset
     : theme.dim + '↑/↓ or j/k  Navigate   Tab  Switch panel   Enter  Select/Toggle   r  Reset defaults   Esc  Back' + theme.reset;
   const helpBox = boxAround([helpText], theme, totalSettingsWidth);
@@ -1310,7 +1250,6 @@ module.exports = {
   MAIN_MENU_OPTIONS,
   SETTINGS_CATEGORIES,
   BEHAVIOR_OPTIONS,
-  CARET_OPTIONS,
   CARET_STYLE_VALUES,
   APPEARANCE_OPTIONS,
   KEYMAP_OPTIONS,

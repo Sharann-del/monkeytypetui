@@ -34,7 +34,7 @@ const DEFAULT_SETTINGS = {
     liveAccuracy: 'text',
     liveBurst: 'off',
     tapeMode: 'off',
-    tapeMargin: 100,
+    tapeMargin: 75,
     keymapMode: 'react',
     keymapStyle: 'staggered',
   },
