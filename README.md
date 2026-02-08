@@ -149,7 +149,7 @@
 ┌─[ FROM SOURCE ]──────────────────────────────────────────────────────────┐
 │                                                                          │
 │  # Clone repository                                                      │
-│  git clone https://github.com/yourusername/terminaltype.git              │
+│  git clone https://github.com/sharann-del/terminaltype.git               │
 │  cd terminaltype                                                         │
 │                                                                          │
 │  # Install dependencies                                                  │
@@ -788,7 +788,7 @@ terminaltype/
 ║                                                                          ║
 ║                   Built for terminal typing enthusiasts                  ║
 ║                                                                          ║
-║                       github.com/yourusername/terminaltype               ║
+║                    github.com/sharann-del/terminaltype                   ║
 ║                                                                          ║
 ╚══════════════════════════════════════════════════════════════════════════╝
 ```
